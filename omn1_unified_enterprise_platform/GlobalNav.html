@@ -1,0 +1,102 @@
+<nav class="omn1-global-nav">
+  <div class="omn1-nav-brand">
+    <div class="omn1-logo-badge">OMN1</div>
+    <span class="omn1-platform-title">Enterprise Suite</span>
+  </div>
+  
+  <div class="omn1-nav-links">
+    <a href="<?= ScriptApp.getService().getUrl() ?>" class="omn1-nav-btn">
+      <span class="omn1-icon">❖</span> Hub
+    </a>
+    <a href="<?= ScriptApp.getService().getUrl() ?>?service=terminal" class="omn1-nav-btn">
+      <span class="omn1-icon">⏱</span> Terminal
+    </a>
+    <a href="<?= ScriptApp.getService().getUrl() ?>?service=tickets" class="omn1-nav-btn">
+      <span class="omn1-icon">🎫</span> IT Desk
+    </a>
+    <a href="<?= ScriptApp.getService().getUrl() ?>?service=leave" class="omn1-nav-btn">
+      <span class="omn1-icon">🌴</span> Leave
+    </a>
+  </div>
+</nav>
+
+<style>
+  .omn1-global-nav {
+    width: 100%;
+    max-width: 1040px;
+    margin: 0 auto 18px auto;
+    background: rgba(13, 17, 23, 0.95);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    z-index: 999;
+    position: relative;
+  }
+  .omn1-nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .omn1-logo-badge {
+    background: #10b981;
+    color: #040d0a;
+    font-weight: 800;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+  }
+  .omn1-platform-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+  }
+  .omn1-nav-links {
+    display: flex;
+    gap: 8px;
+  }
+  .omn1-nav-btn {
+    text-decoration: none;
+    color: #94a3b8;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    border: 1px solid transparent;
+  }
+  .omn1-nav-btn:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  .omn1-icon { font-size: 13px; }
+
+  @media (max-width: 650px) {
+    .omn1-global-nav {
+      flex-direction: column;
+      gap: 10px;
+      padding: 10px;
+    }
+    .omn1-nav-links {
+      width: 100%;
+      justify-content: space-between;
+    }
+    .omn1-nav-btn {
+      padding: 6px 8px;
+      font-size: 11px;
+    }
+  }
+</style>

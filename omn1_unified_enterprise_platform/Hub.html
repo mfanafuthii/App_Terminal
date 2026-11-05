@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at 50% 10%, #0d1e18 0%, #07090b 80%);
+      color: #f8fafc;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .hub-container {
+      width: 100%;
+      max-width: 1040px;
+      margin-top: 10px;
+    }
+    .hub-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .hub-header h1 {
+      font-size: clamp(24px, 4vw, 34px);
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 8px;
+    }
+    .hub-header p {
+      color: #94a3b8;
+      font-size: 14px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 20px;
+    }
+    .service-card {
+      background: rgba(17, 22, 26, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 28px 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+      text-decoration: none;
+      color: inherit;
+    }
+    .service-card:hover {
+      transform: translateY(-4px);
+      border-color: #10b981;
+      box-shadow: 0 20px 40px -15px rgba(16, 185, 129, 0.25);
+    }
+    .card-badge {
+      display: inline-block;
+      align-self: flex-start;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 16px;
+    }
+    .badge-mint { background: rgba(30, 185, 128, 0.15); color: #86efac; border: 1px solid rgba(30, 185, 128, 0.3); }
+    .badge-blue { background: rgba(59, 130, 246, 0.15); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .badge-purple { background: rgba(168, 85, 247, 0.15); color: #d8b4fe; border: 1px solid rgba(168, 85, 247, 0.3); }
+
+    .card-title {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+    .card-desc {
+      font-size: 13px;
+      color: #94a3b8;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+    .launch-btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      background: #1e293b;
+      color: #fff;
+      font-weight: 700;
+      font-size: 13px;
+      text-align: center;
+      transition: background 0.2s;
+    }
+    .service-card:hover .launch-btn {
+      background: #10b981;
+      color: #040d0a;
+    }
+  </style>
+</head>
+<body>
+
+  <?!= include('GlobalNav'); ?>
+
+  <div class="hub-container">
+    <div class="hub-header">
+      <h1>Omn1 Workspace Hub</h1>
+      <p>Select which platform application you want to launch</p>
+    </div>
+
+    <div class="grid">
+      <!-- 1. Workplace Attendance Terminal -->
+      <a href="<?= ScriptApp.getService().getUrl() ?>?service=terminal" class="service-card">
+        <div>
+          <span class="card-badge badge-mint">Active Shifts</span>
+          <h2 class="card-title">Workplace Terminal</h2>
+          <p class="card-desc">Record clock-ins and lunch breaks, bind hardware device fingerprints, and run administrator audits.</p>
+        </div>
+        <div class="launch-btn">Launch Terminal &rarr;</div>
+      </a>
+
+      <!-- 2. IT Service Desk -->
+      <a href="<?= ScriptApp.getService().getUrl() ?>?service=tickets" class="service-card">
+        <div>
+          <span class="card-badge badge-blue">Support Desk</span>
+          <h2 class="card-title">IT Service Desk</h2>
+          <p class="card-desc">Raise technical tickets, submit error screenshots, manage accounts, and sign in with Google Authenticator.</p>
+        </div>
+        <div class="launch-btn">Launch IT Portal &rarr;</div>
+      </a>
+
+      <!-- 3. Leave Portal -->
+      <a href="<?= ScriptApp.getService().getUrl() ?>?service=leave" class="service-card">
+        <div>
+          <span class="card-badge badge-purple">HR Management</span>
+          <h2 class="card-title">Leave Portal</h2>
+          <p class="card-desc">Submit leave applications, view distribution analytics, track approvals, and manage approver delegations.</p>
+        </div>
+        <div class="launch-btn">Launch Leave System &rarr;</div>
+      </a>
+    </div>
+  </div>
+
+</body>
+</html>

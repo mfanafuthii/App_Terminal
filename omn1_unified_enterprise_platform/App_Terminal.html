@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    
+    :root {
+      --bg: #07090b;
+      --card-bg: rgba(17, 22, 26, 0.94);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --mint: #1eb980;
+      --mint-glow: rgba(30, 185, 128, 0.35);
+      --mint-dark: #051e14;
+      --amber: #f59e0b;
+      --amber-glow: rgba(245, 158, 11, 0.35);
+      --blue: #3b82f6;
+      --blue-glow: rgba(59, 130, 246, 0.35);
+      --purple: #a855f7;
+      --red: #ef4444;
+      --red-glow: rgba(239, 68, 68, 0.35);
+      --text: #f8fafc;
+      --text-muted: #8b9bb0;
+      --input-bg: #0e1317;
+      --input-border: #1f2830;
+      --font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    html, body {
+      min-height: 100vh;
+      background-color: var(--bg);
+      font-family: var(--font-family);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      padding: 16px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 440px;
+      background: var(--card-bg);
+      backdrop-filter: blur(25px);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 24px 20px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.9);
+      transition: max-width 0.3s ease;
+    }
+    .card.admin-mode { max-width: 1040px; }
+
+    .brand-header { text-align: center; margin-bottom: 16px; }
+    .clock-badge {
+      display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px;
+      border-radius: 16px; background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06); font-size: 11.5px;
+      color: var(--text-muted); margin-bottom: 6px; font-weight: 600;
+    }
+    .pulse-dot {
+      width: 6px; height: 6px; border-radius: 50%; background: var(--mint);
+      box-shadow: 0 0 8px var(--mint); animation: pulse 2s infinite ease-in-out;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+    h2 { font-size: 19px; font-weight: 800; color: #ffffff; }
+
+    /* Parent Category Toggle: Clock vs Lunch */
+    .parent-toggle-container {
+      display: flex;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 12px;
+      gap: 6px;
+    }
+    .parent-btn {
+      flex: 1;
+      padding: 10px 0;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 13px;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .parent-btn.active-parent.mint-mode {
+      background: var(--mint);
+      color: var(--mint-dark);
+      box-shadow: 0 3px 10px var(--mint-glow);
+    }
+    .parent-btn.active-parent.amber-mode {
+      background: var(--amber);
+      color: #000;
+      box-shadow: 0 3px 10px var(--amber-glow);
+    }
+
+    /* Sub-Action Buttons */
+    .sub-action-group {
+      display: none;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .sub-action-group.active { display: grid; }
+    .action-btn {
+      padding: 10px 6px;
+      border: 1px solid var(--input-border);
+      border-radius: 10px;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 12.5px;
+      cursor: pointer;
+      background: var(--input-bg);
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+    .action-btn.active-in { background: var(--mint); color: var(--mint-dark); border-color: var(--mint); box-shadow: 0 3px 10px var(--mint-glow); }
+    .action-btn.active-out { background: var(--red); color: #fff; border-color: var(--red); box-shadow: 0 3px 10px var(--red-glow); }
+    .action-btn.active-lunch-out { background: var(--amber); color: #000; border-color: var(--amber); box-shadow: 0 3px 10px var(--amber-glow); }
+    .action-btn.active-lunch-in { background: var(--blue); color: #fff; border-color: var(--blue); box-shadow: 0 3px 10px var(--blue-glow); }
+
+    /* Role Selector */
+    .role-toggle-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      background: var(--input-bg);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--input-border);
+    }
+    .role-btn {
+      flex: 1;
+      padding: 8px;
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    .role-btn.active-role {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .role-btn.active-role.admin-sel {
+      background: rgba(59, 130, 246, 0.2);
+      color: #93c5fd;
+      border-color: rgba(59, 130, 246, 0.4);
+    }
+
+    .input-group { margin-bottom: 14px; text-align: left; }
+    label { font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 5px; text-transform: uppercase; }
+    input[type="text"], input[type="password"], input[type="email"] {
+      width: 100%; padding: 11px 13px; font-size: 14px; font-family: inherit;
+      background-color: var(--input-bg); border: 1px solid var(--input-border);
+      color: #ffffff; border-radius: 9px; outline: none;
+    }
+    input:focus { border-color: var(--mint); box-shadow: 0 0 0 2px rgba(30, 185, 128, 0.15); }
+
+    .btn {
+      width: 100%; padding: 12px; color: #ffffff; font-family: inherit; font-weight: 700;
+      border: none; border-radius: 9px; cursor: pointer; font-size: 13.5px;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn-submit { background: var(--mint); color: var(--mint-dark); box-shadow: 0 4px 14px var(--mint-glow); }
+    .btn-secondary { background: rgba(255, 255, 255, 0.04); color: #e2e8f0; border: 1px solid rgba(255, 255, 255, 0.08); font-size: 12.5px; }
+    
+    .btn-danger-sm {
+      background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3);
+      padding: 5px 9px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer;
+    }
+    .btn-danger-sm:hover { background: var(--red); color: #fff; }
+    
+    .btn-action-add {
+      background: rgba(30, 185, 128, 0.15); color: #86efac; border: 1px solid rgba(30, 185, 128, 0.3);
+      padding: 6px 12px; border-radius: 8px; font-size: 11.5px; font-weight: 700; cursor: pointer;
+    }
+    .btn-action-add:hover { background: var(--mint); color: var(--mint-dark); }
+
+    .nav-links {
+      margin-top: 16px; display: flex; justify-content: space-between; font-size: 11.5px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 14px;
+    }
+    .nav-links a { color: var(--mint); cursor: pointer; text-decoration: none; font-weight: 600; }
+
+    .view-panel { display: none; }
+    .view-panel.active { display: block; }
+
+    /* Admin View Elements */
+    .admin-header-bar {
+      display: flex; justify-content: space-between; align-items: center;
+      background: #0d1216; padding: 12px 16px; border-radius: 12px;
+      margin-bottom: 16px; border: 1px solid var(--input-border);
+    }
+    .metrics-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px; margin-bottom: 20px;
+    }
+    .metric-card {
+      background: #0d1216; border: 1px solid var(--input-border);
+      padding: 12px; border-radius: 12px; text-align: center;
+    }
+    .metric-card span { font-size: 11px; color: var(--text-muted); text-transform: uppercase; }
+    .metric-card h3 { font-size: 22px; margin-top: 4px; color: #fff; }
+
+    .charts-container {
+      display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 24px;
+    }
+    @media(min-width: 650px) { .charts-container { grid-template-columns: 2fr 1fr; } }
+    .chart-box {
+      background: #0d1216; border: 1px solid var(--input-border);
+      border-radius: 14px; padding: 14px;
+    }
+    .chart-box h4 { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase; }
+
+    .admin-section {
+      background: #0d1216; border: 1px solid var(--input-border);
+      border-radius: 14px; overflow: hidden; margin-bottom: 20px;
+    }
+    .admin-section-header {
+      padding: 12px 14px; display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid var(--input-border);
+      flex-wrap: wrap; gap: 8px;
+    }
+    .admin-section-header h4 { font-size: 12.5px; color: var(--text); text-transform: uppercase; }
+
+    .search-filter-wrap {
+      padding: 10px 14px;
+      background: rgba(0, 0, 0, 0.2);
+      border-bottom: 1px solid var(--input-border);
+    }
+    .search-filter-wrap input {
+      width: 100%;
+      padding: 8px 12px;
+      font-size: 13px;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 8px;
+      color: #fff;
+    }
+
+    .admin-form-popup {
+      background: #12181d; padding: 14px; border-bottom: 1px solid var(--input-border);
+      display: none;
+    }
+    .admin-form-popup.active { display: block; }
+
+    table.portal-table { width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left; }
+    table.portal-table th { padding: 10px 12px; color: var(--text-muted); border-bottom: 1px solid var(--input-border); font-weight: 700; }
+    table.portal-table td { padding: 10px 12px; border-bottom: 1px solid #141b21; }
+
+    .badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+    .badge-working { background: rgba(30, 185, 128, 0.15); color: #86efac; border: 1px solid rgba(30, 185, 128, 0.3); }
+    .badge-lunch { background: rgba(245, 158, 11, 0.15); color: #fde047; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-overdue { background: rgba(239, 68, 68, 0.25); color: #fca5a5; border: 1px solid var(--red); }
+    .badge-out { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .badge-absent { background: rgba(148, 163, 184, 0.1); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.2); }
+    .badge-purple { background: rgba(168, 85, 247, 0.15); color: #d8b4fe; border: 1px solid rgba(168, 85, 247, 0.3); }
+    .badge-danger { background: rgba(239, 68, 68, 0.25); color: #ef4444; border: 1px solid #ef4444; font-weight: 800; }
+
+    #status { margin-top: 14px; padding: 10px 12px; border-radius: 9px; font-size: 12px; display: none; text-align: left; }
+    .info { background: rgba(30, 185, 128, 0.08); color: #5eead4; border: 1px solid rgba(30, 185, 128, 0.25); display: block !important; }
+    .error { background: rgba(239, 68, 68, 0.08); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.25); display: block !important; }
+    .success { background: rgba(34, 197, 94, 0.08); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.25); display: block !important; }
+  </style>
+</head>
+<body>
+
+  <?!= include('GlobalNav'); ?>
+
+  <div class="card" id="app-card">
+    
+    <div class="brand-header">
+      <div class="clock-badge">
+        <span class="pulse-dot"></span>
+        <span id="live-clock">--:--:--</span>
+      </div>
+      <h2 id="view-title">Workplace Terminal</h2>
+    </div>
+
+    <!-- VIEW 1: TERMINAL PUNCH (EMAIL & PASSWORD) -->
+    <div id="view-punch" class="view-panel active">
+
+      <div class="parent-toggle-container">
+        <button type="button" class="parent-btn active-parent mint-mode" id="parent-clock" onclick="switchCategory('CLOCK')">
+          Work Shift
+        </button>
+        <button type="button" class="parent-btn" id="parent-lunch" onclick="switchCategory('LUNCH')">
+          Lunch Break
+        </button>
+      </div>
+
+      <div class="sub-action-group active" id="sub-group-clock">
+        <button type="button" class="action-btn active-in" id="btn-CLOCK_IN" onclick="setAction('CLOCK_IN')">
+          Clock In
+        </button>
+        <button type="button" class="action-btn" id="btn-CLOCK_OUT" onclick="setAction('CLOCK_OUT')">
+          Clock Out
+        </button>
+      </div>
+
+      <div class="sub-action-group" id="sub-group-lunch">
+        <button type="button" class="action-btn active-lunch-out" id="btn-LUNCH_OUT" onclick="setAction('LUNCH_OUT')">
+          Leave for Lunch
+        </button>
+        <button type="button" class="action-btn" id="btn-LUNCH_IN" onclick="setAction('LUNCH_IN')">
+          Return from Lunch
+        </button>
+      </div>
+
+      <div class="input-group">
+        <label for="emp-email">Work Email</label>
+        <input type="email" id="emp-email" placeholder="name@company.com" autocomplete="email">
+      </div>
+
+      <div class="input-group">
+        <label for="entry-password">Password</label>
+        <input type="password" id="entry-password" placeholder="••••••••" maxlength="32">
+      </div>
+
+      <button type="button" class="btn btn-submit" id="submit-btn" onclick="handlePunch()">
+        <span id="submit-label">Verify Location & Clock In</span>
+      </button>
+
+      <div class="nav-links">
+        <a onclick="toggleView('register')">Create Profile</a>
+        <a onclick="toggleView('recover')">Forgot Password?</a>
+        <a onclick="toggleView('admin-login')" style="color: var(--mint);">Admin Portal</a>
+      </div>
+    </div>
+
+    <!-- VIEW 2: ACCOUNT CREATION (EMAIL & PASSWORD) -->
+    <div id="view-register" class="view-panel">
+      
+      <div class="role-toggle-group">
+        <button type="button" class="role-btn active-role" id="role-worker-btn" onclick="setRole('WORKER')">
+          Worker / Employee
+        </button>
+        <button type="button" class="role-btn" id="role-admin-btn" onclick="setRole('ADMIN')">
+          Administrator
+        </button>
+      </div>
+
+      <p id="role-hint" style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 14px; text-align: center;">
+        Worker accounts bind permanently to this device for attendance punching.
+      </p>
+
+      <div class="input-group">
+        <label for="reg-name">Full Name</label>
+        <input type="text" id="reg-name" placeholder="e.g. Jane Doe">
+      </div>
+
+      <div class="input-group">
+        <label for="reg-email" id="reg-email-label">Work Email</label>
+        <input type="email" id="reg-email" placeholder="jane@company.com">
+      </div>
+
+      <div class="input-group">
+        <label for="reg-password">Set Password</label>
+        <input type="password" id="reg-password" placeholder="Enter secure password" maxlength="32">
+      </div>
+
+      <button type="button" class="btn btn-submit" id="reg-btn" onclick="handleUnifiedRegistration()">
+        Register Account
+      </button>
+
+      <div class="nav-links" style="justify-content: center;">
+        <a onclick="toggleView('punch')">← Back to Terminal</a>
+      </div>
+    </div>
+
+    <!-- VIEW 3: CREDENTIAL RECOVERY -->
+    <div id="view-recover" class="view-panel">
+      <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 14px; text-align: center;">
+        Enter your registered email to receive your account credentials.
+      </p>
+
+      <div class="input-group">
+        <label for="recover-email">Work Email</label>
+        <input type="email" id="recover-email" placeholder="jane@company.com">
+      </div>
+
+      <button type="button" class="btn btn-secondary" style="width: 100%;" id="recover-btn" onclick="handleCredentialRecovery()">
+        Email My Password
+      </button>
+
+      <div class="nav-links" style="justify-content: center;">
+        <a onclick="toggleView('punch')">← Back to Terminal</a>
+      </div>
+    </div>
+
+    <!-- VIEW 4: ADMIN LOGIN (EMAIL & PASSWORD) -->
+    <div id="view-admin-login" class="view-panel">
+      <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 14px; text-align: center;">
+        Enter administrator credentials (Default: <code>admin@company.com</code> / <code>1234</code>).
+      </p>
+
+      <div class="input-group">
+        <label for="admin-email-input">Admin Work Email</label>
+        <input type="email" id="admin-email-input" placeholder="admin@company.com">
+      </div>
+
+      <div class="input-group">
+        <label for="admin-password-input">Password</label>
+        <input type="password" id="admin-password-input" placeholder="••••••••">
+      </div>
+
+      <button type="button" class="btn btn-submit" id="admin-login-btn" onclick="handleAdminLogin()">
+        Log In to Admin Portal
+      </button>
+
+      <div class="nav-links" style="justify-content: center;">
+        <a onclick="toggleView('punch')">← Back to Terminal</a>
+      </div>
+    </div>
+
+    <!-- VIEW 5: ADMIN PORTAL & DASHBOARD -->
+    <div id="view-admin-dashboard" class="view-panel">
+      
+      <div class="admin-header-bar">
+        <div>
+          <span style="font-size: 11px; color: var(--text-muted);">AUTHENTICATED ADMINISTRATOR</span>
+          <h4 id="admin-display-name" style="color: #fff; font-size: 14px;">Administrator</h4>
+        </div>
+        <div style="display:flex; gap: 8px;">
+          <button class="btn-action-add" onclick="refreshAdminData()">↻ Refresh</button>
+          <button class="btn-danger-sm" onclick="logoutAdmin()">Sign Out</button>
+        </div>
+      </div>
+
+      <!-- Quick Metrics -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <span>Total Staff</span>
+          <h3 id="stat-total">0</h3>
+        </div>
+        <div class="metric-card">
+          <span>Working Now</span>
+          <h3 id="stat-working" style="color: var(--mint);">0</h3>
+        </div>
+        <div class="metric-card">
+          <span>On Lunch</span>
+          <h3 id="stat-lunch" style="color: var(--amber);">0</h3>
+        </div>
+        <div class="metric-card">
+          <span>New Today</span>
+          <h3 id="stat-new-today" style="color: var(--purple);">0</h3>
+        </div>
+        <div class="metric-card">
+          <span>Chronic Late (12+)</span>
+          <h3 id="stat-chronic" style="color: var(--red);">0</h3>
+        </div>
+      </div>
+
+      <!-- Reports, Export & GPS Calibration Controls -->
+      <div class="admin-section">
+        <div class="admin-section-header">
+          <h4>Analytics Reports, Timesheet Export & Geofence</h4>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button class="btn-action-add" onclick="triggerReport('weekly')">📧 Send Weekly Digest</button>
+            <button class="btn-action-add" onclick="triggerReport('monthly')">📊 Send Monthly Report</button>
+            <button class="btn-action-add" style="background:rgba(168,85,247,0.18); color:#d8b4fe; border-color:rgba(168,85,247,0.35);" onclick="handleExportCSV()">📥 Export 30-Day CSV</button>
+            <button class="btn-action-add" style="background:rgba(59,130,246,0.18); color:#93c5fd; border-color:rgba(59,130,246,0.35);" onclick="handleCalibrateOfficeLocation()">📍 Calibrate Office GPS</button>
+          </div>
+        </div>
+        <p style="padding:10px 14px; font-size:11.5px; color:var(--text-muted); margin:0;" id="gps-status-info">
+          Automated weekly and monthly analytics reports, plus 12-late threshold alerts, are dispatched to all emails in the administrator roster below.
+        </p>
+      </div>
+
+      <!-- Visual Charts -->
+      <div class="charts-container">
+        <div class="chart-box">
+          <h4>Hourly Activity Distribution</h4>
+          <canvas id="hourlyActivityChart" height="140"></canvas>
+        </div>
+        <div class="chart-box">
+          <h4>Current Presence</h4>
+          <canvas id="statusDonutChart" height="140"></canvas>
+        </div>
+      </div>
+
+      <!-- Attendance & Lunch Table with Search Filter -->
+      <div class="admin-section">
+        <div class="admin-section-header">
+          <h4>Today's Real-Time Attendance & Lunch Monitor</h4>
+        </div>
+        <div class="search-filter-wrap">
+          <input type="text" id="timeline-search-input" placeholder="🔍 Filter today's attendance logs by employee name..." oninput="filterTimelineTable()">
+        </div>
+        <div style="overflow-x: auto;">
+          <table class="portal-table" id="timeline-table">
+            <thead>
+              <tr>
+                <th>Staff Name</th>
+                <th>Registered Today</th>
+                <th>Clock In</th>
+                <th>Lunch Out</th>
+                <th>Lunch In</th>
+                <th>Clock Out</th>
+                <th>Status</th>
+                <th>Validation Flag</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Staff Accounts Management -->
+      <div class="admin-section">
+        <div class="admin-section-header">
+          <h4>Employee Accounts, Registration Info & Lateness</h4>
+          <button class="btn-action-add" onclick="togglePopup('form-add-emp')">+ New Employee</button>
+        </div>
+
+        <div class="search-filter-wrap">
+          <input type="text" id="staff-search-input" placeholder="🔍 Search employee accounts by name or email..." oninput="filterStaffTable()">
+        </div>
+
+        <div id="form-add-emp" class="admin-form-popup">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) auto; gap: 8px; align-items: flex-end;">
+            <div>
+              <label>Full Name</label>
+              <input type="text" id="new-emp-name" placeholder="John Smith">
+            </div>
+            <div>
+              <label>Work Email</label>
+              <input type="email" id="new-emp-email" placeholder="john@company.com">
+            </div>
+            <div>
+              <label>Password (Optional)</label>
+              <input type="password" id="new-emp-pass" placeholder="Leave blank to auto-gen">
+            </div>
+            <button class="btn btn-submit" style="padding: 10px 16px;" onclick="handleAddEmployee()">Create</button>
+          </div>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table class="portal-table" id="users-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Employee Name</th>
+                <th>Work Email</th>
+                <th>Created On</th>
+                <th>Created By</th>
+                <th>Month Lates</th>
+                <th>Device Lock</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Administrator Accounts Management -->
+      <div class="admin-section">
+        <div class="admin-section-header">
+          <h4>Administrator Accounts (Report Recipients)</h4>
+          <button class="btn-action-add" onclick="togglePopup('form-add-admin')">+ New Admin</button>
+        </div>
+
+        <div id="form-add-admin" class="admin-form-popup">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) auto; gap: 8px; align-items: flex-end;">
+            <div>
+              <label>Admin Full Name</label>
+              <input type="text" id="new-adm-name" placeholder="Alex Taylor">
+            </div>
+            <div>
+              <label>Work Email</label>
+              <input type="email" id="new-adm-email" placeholder="alex@company.com">
+            </div>
+            <div>
+              <label>Password</label>
+              <input type="password" id="new-adm-pass" placeholder="Enter password">
+            </div>
+            <button class="btn btn-submit" style="padding: 10px 16px;" onclick="handleAddAdmin()">Create</button>
+          </div>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table class="portal-table" id="admins-table">
+            <thead>
+              <tr>
+                <th>Admin ID</th>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Created On</th>
+                <th>Role</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <div id="status"></div>
+  </div>
+
+  <script>
+    let currentCategory = 'CLOCK';
+    let currentAction = 'CLOCK_IN';
+    let selectedRegRole = 'WORKER';
+    let authAdmin = { email: '', password: '', name: '' };
+    let hourlyChartInstance = null;
+    let donutChartInstance = null;
+    let cachedDashboardData = null;
+
+    async function generateDeviceFingerprint() {
+      try {
+        if (navigator.storage && navigator.storage.estimate) {
+          const { quota } = await navigator.storage.estimate();
+          if (quota !== undefined && quota < 120000000) return null;
+        }
+        const isPrivateWindow = await new Promise((resolve) => {
+          const fs = window.RequestFileSystem || window.webkitRequestFileSystem;
+          if (!fs) { resolve(false); return; }
+          fs(window.TEMPORARY, 100, () => resolve(false), () => resolve(true));
+        });
+        if (isPrivateWindow) return null;
+
+        const testKey = '__omn1_priv_test__';
+        window.localStorage.setItem(testKey, '1');
+        window.localStorage.removeItem(testKey);
+
+        let seed = localStorage.getItem('omn1_profile_seed');
+        if (!seed) {
+          seed = 'SEED_' + ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+            (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+          );
+          localStorage.setItem('omn1_profile_seed', seed);
+        }
+
+        const screenSpecs = window.screen.width + "x" + window.screen.height + "x" + window.screen.colorDepth;
+        const cores = navigator.hardwareConcurrency || 4;
+        const memory = navigator.deviceMemory || 4;
+        const platform = navigator.platform || 'unknown';
+        const userAgent = navigator.userAgent;
+
+        const combined = seed + "|" + userAgent + "|" + screenSpecs + "|" + cores + "|" + memory + "|" + platform;
+        const msgBuffer = new TextEncoder().encode(combined);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+        return 'OMN1_' + hashHex.substring(0, 24);
+      } catch (err) {
+        return null;
+      }
+    }
+
+    function startClock() {
+      const clockEl = document.getElementById('live-clock');
+      function update() {
+        clockEl.innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      }
+      update();
+      setInterval(update, 1000);
+    }
+    startClock();
+
+    function setStatus(text, type) {
+      const el = document.getElementById('status');
+      el.className = type;
+      el.innerText = text;
+      el.style.display = 'block';
+    }
+
+    function toggleView(view) {
+      setStatus("", "");
+      document.getElementById('status').style.display = 'none';
+      document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+
+      const appCard = document.getElementById('app-card');
+      const title = document.getElementById('view-title');
+
+      if (view === 'admin-dashboard') {
+        appCard.classList.add('admin-mode');
+        title.innerText = "Management & Admin Platform";
+      } else {
+        appCard.classList.remove('admin-mode');
+        title.innerText = "Workplace Terminal";
+      }
+      document.getElementById('view-' + view).classList.add('active');
+    }
+
+    function togglePopup(id) {
+      const el = document.getElementById(id);
+      el.classList.toggle('active');
+    }
+
+    function switchCategory(cat) {
+      currentCategory = cat;
+      const clockBtn = document.getElementById('parent-clock');
+      const lunchBtn = document.getElementById('parent-lunch');
+      const clockSubGroup = document.getElementById('sub-group-clock');
+      const lunchSubGroup = document.getElementById('sub-group-lunch');
+
+      if (cat === 'CLOCK') {
+        clockBtn.className = 'parent-btn active-parent mint-mode';
+        lunchBtn.className = 'parent-btn';
+        clockSubGroup.classList.add('active');
+        lunchSubGroup.classList.remove('active');
+        setAction('CLOCK_IN');
+      } else {
+        clockBtn.className = 'parent-btn';
+        lunchBtn.className = 'parent-btn active-parent amber-mode';
+        clockSubGroup.classList.remove('active');
+        lunchSubGroup.classList.add('active');
+        setAction('LUNCH_OUT');
+      }
+    }
+
+    function setAction(action) {
+      currentAction = action;
+      document.querySelectorAll('.action-btn').forEach(b => {
+        b.classList.remove('active-in', 'active-out', 'active-lunch-out', 'active-lunch-in');
+      });
+
+      const submitBtn = document.getElementById('submit-btn');
+      const submitLabel = document.getElementById('submit-label');
+      const activeBtn = document.getElementById('btn-' + action);
+
+      if (action === 'CLOCK_IN') {
+        activeBtn.classList.add('active-in');
+        submitBtn.style.background = 'var(--mint)';
+        submitLabel.innerText = 'Verify Location & Clock In';
+      } else if (action === 'CLOCK_OUT') {
+        activeBtn.classList.add('active-out');
+        submitBtn.style.background = 'var(--red)';
+        submitLabel.innerText = 'Verify Location & Clock Out';
+      } else if (action === 'LUNCH_OUT') {
+        activeBtn.classList.add('active-lunch-out');
+        submitBtn.style.background = 'var(--amber)';
+        submitLabel.innerText = 'Verify Location & Start Lunch';
+      } else if (action === 'LUNCH_IN') {
+        activeBtn.classList.add('active-lunch-in');
+        submitBtn.style.background = 'var(--blue)';
+        submitLabel.innerText = 'Verify Location & Return from Lunch';
+      }
+    }
+
+    function setRole(role) {
+      selectedRegRole = role;
+      const workerBtn = document.getElementById('role-worker-btn');
+      const adminBtn = document.getElementById('role-admin-btn');
+      const hint = document.getElementById('role-hint');
+
+      if (role === 'WORKER') {
+        workerBtn.className = 'role-btn active-role';
+        adminBtn.className = 'role-btn';
+        hint.innerText = "Worker accounts bind permanently to this device for attendance punching.";
+      } else {
+        workerBtn.className = 'role-btn';
+        adminBtn.className = 'role-btn active-role admin-sel';
+        hint.innerText = "Admin accounts have access to the Admin Portal only (cannot punch at terminal).";
+      }
+    }
+
+    async function handlePunch() {
+      const email = document.getElementById('emp-email').value.trim();
+      const password = document.getElementById('entry-password').value.trim();
+      const deviceId = await generateDeviceFingerprint();
+
+      if (!deviceId) {
+        setStatus("Storage/fingerprint error. Turn off Private Browsing mode.", "error");
+        return;
+      }
+      if (!email || !password) {
+        setStatus("Please enter both your Work Email and Password.", "error");
+        return;
+      }
+
+      const submitBtn = document.getElementById('submit-btn');
+      submitBtn.disabled = true;
+      setStatus("Verifying credentials & GPS location...", "info");
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          google.script.run
+            .withSuccessHandler((res) => {
+              submitBtn.disabled = false;
+              setAction(currentAction);
+              setStatus(res.message, res.success ? "success" : "error");
+              if (res.success) document.getElementById('entry-password').value = "";
+            })
+            .withFailureHandler((err) => {
+              submitBtn.disabled = false;
+              setAction(currentAction);
+              setStatus("Server error: " + err.message, "error");
+            })
+            .processPunch({
+              email: email, password: password, deviceId: deviceId, actionType: currentAction,
+              lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy
+            });
+        },
+        (err) => {
+          submitBtn.disabled = false;
+          setStatus("Location error: Ensure GPS and location permissions are enabled.", "error");
+        },
+        { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+      );
+    }
+
+    async function handleUnifiedRegistration() {
+      const name = document.getElementById('reg-name').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const password = document.getElementById('reg-password').value.trim();
+      const deviceId = await generateDeviceFingerprint();
+
+      if (!name || !email || !password) {
+        setStatus("Please fill in Name, Email, and Password.", "error");
+        return;
+      }
+
+      if (selectedRegRole === 'WORKER' && !deviceId) {
+        setStatus("Private browsing detected. Workers must register in a normal window.", "error");
+        return;
+      }
+
+      const btn = document.getElementById('reg-btn');
+      btn.disabled = true;
+      setStatus("Creating " + selectedRegRole.toLowerCase() + " profile...", "info");
+
+      google.script.run
+        .withSuccessHandler((res) => {
+          btn.disabled = false;
+          setStatus(res.message, res.success ? "success" : "error");
+          if (res.success) {
+            document.getElementById('reg-name').value = '';
+            document.getElementById('reg-email').value = '';
+            document.getElementById('reg-password').value = '';
+            setTimeout(() => {
+              if (selectedRegRole === 'ADMIN') toggleView('admin-login');
+              else toggleView('punch');
+            }, 2000);
+          }
+        })
+        .withFailureHandler((err) => {
+          btn.disabled = false;
+          setStatus(err.message, "error");
+        })
+        .registerAccount({
+          role: selectedRegRole,
+          name: name,
+          email: email,
+          password: password,
+          deviceId: deviceId
+        });
+    }
+
+    function handleCredentialRecovery() {
+      const email = document.getElementById('recover-email').value.trim();
+      if (!email) return setStatus("Please provide your work email address.", "error");
+
+      const btn = document.getElementById('recover-btn');
+      btn.disabled = true;
+      google.script.run
+        .withSuccessHandler((res) => {
+          btn.disabled = false;
+          setStatus(res.message, res.success ? "success" : "error");
+        })
+        .sendCredentialsByEmail(email);
+    }
+
+    function handleAdminLogin() {
+      const email = document.getElementById('admin-email-input').value.trim();
+      const password = document.getElementById('admin-password-input').value.trim();
+
+      if (!email || !password) {
+        setStatus("Please supply both Admin Work Email and Password.", "error");
+        return;
+      }
+
+      const btn = document.getElementById('admin-login-btn');
+      btn.disabled = true;
+      setStatus("Authenticating admin access...", "info");
+
+      google.script.run
+        .withSuccessHandler((res) => {
+          btn.disabled = false;
+          if (res.success) {
+            authAdmin.email = email;
+            authAdmin.password = password;
+            authAdmin.name = res.admin.name;
+            document.getElementById('admin-display-name').innerText = res.admin.name;
+            refreshAdminData();
+            toggleView('admin-dashboard');
+          } else {
+            setStatus(res.message, "error");
+          }
+        })
+        .withFailureHandler((err) => {
+          btn.disabled = false;
+          setStatus("Login failed: " + err.message, "error");
+        })
+        .adminLogin(email, password);
+    }
+
+    function refreshAdminData() {
+      if (!authAdmin.email) return;
+      google.script.run
+        .withSuccessHandler((res) => {
+          if (res.success) {
+            cachedDashboardData = res;
+            renderDashboard(res);
+          } else {
+            setStatus(res.message, "error");
+          }
+        })
+        .getAdminDashboardData(authAdmin.email, authAdmin.password);
+    }
+
+    function triggerReport(type) {
+      setStatus("Generating and dispatching " + type + " report to admin emails...", "info");
+      if (type === 'weekly') {
+        google.script.run
+          .withSuccessHandler(res => setStatus(res.message, res.success ? "success" : "error"))
+          .withFailureHandler(err => setStatus("Report error: " + err.message, "error"))
+          .sendWeeklyAnalyticsReport();
+      } else {
+        google.script.run
+          .withSuccessHandler(res => setStatus(res.message, res.success ? "success" : "error"))
+          .withFailureHandler(err => setStatus("Report error: " + err.message, "error"))
+          .sendMonthlyAnalyticsReport();
+      }
+    }
+
+    function handleExportCSV() {
+      setStatus("Compiling 30-day timesheet CSV...", "info");
+      google.script.run
+        .withSuccessHandler(res => {
+          if (res.success) {
+            const blob = new Blob([res.csvData], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", res.fileName);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setStatus("Timesheet CSV exported successfully.", "success");
+          } else {
+            setStatus(res.message, "error");
+          }
+        })
+        .withFailureHandler(err => setStatus("Export error: " + err.message, "error"))
+        .exportAttendanceCSV(authAdmin.email, authAdmin.password);
+    }
+
+    function handleCalibrateOfficeLocation() {
+      if (!navigator.geolocation) {
+        setStatus("Geolocation is not supported by your browser.", "error");
+        return;
+      }
+      setStatus("Acquiring GPS fix to lock office anchor location...", "info");
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          google.script.run
+            .withSuccessHandler(res => {
+              setStatus(res.message, res.success ? "success" : "error");
+              refreshAdminData();
+            })
+            .withFailureHandler(err => setStatus("Calibration error: " + err.message, "error"))
+            .adminUpdateOfficeCoordinates(authAdmin.email, authAdmin.password, pos.coords.latitude, pos.coords.longitude);
+        },
+        (err) => {
+          setStatus("Location error: Ensure GPS and permissions are allowed.", "error");
+        },
+        { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+      );
+    }
+
+    function filterTimelineTable() {
+      const query = document.getElementById('timeline-search-input').value.toLowerCase().trim();
+      const rows = document.querySelectorAll('#timeline-table tbody tr');
+      rows.forEach(r => {
+        const text = r.innerText.toLowerCase();
+        r.style.display = text.includes(query) ? '' : 'none';
+      });
+    }
+
+    function filterStaffTable() {
+      const query = document.getElementById('staff-search-input').value.toLowerCase().trim();
+      const rows = document.querySelectorAll('#users-table tbody tr');
+      rows.forEach(r => {
+        const text = r.innerText.toLowerCase();
+        r.style.display = text.includes(query) ? '' : 'none';
+      });
+    }
+
+    function renderDashboard(data) {
+      document.getElementById('stat-total').innerText = data.metrics.totalStaff;
+      document.getElementById('stat-working').innerText = data.metrics.workingNow;
+      document.getElementById('stat-lunch').innerText = data.metrics.onLunchNow;
+      document.getElementById('stat-new-today').innerText = data.metrics.newProfilesToday;
+      document.getElementById('stat-chronic').innerText = data.metrics.chronicLateCount;
+
+      if (data.officeCoordinates) {
+        document.getElementById('gps-status-info').innerText = 
+          "Office Geofence Anchor: " + data.officeCoordinates.lat + ", " + data.officeCoordinates.lng + " (Perimeter: 20m). Automated weekly/monthly digests and 12-Late disciplinary alerts are dispatched to all emails below.";
+      }
+
+      renderHourlyChart(data.graphData.hourlyLabels, data.graphData.hourlyCounts);
+      renderDonutChart(data.graphData.statusDistribution);
+
+      // 1. Timeline Monitor Table
+      const timelineTbody = document.querySelector('#timeline-table tbody');
+      timelineTbody.innerHTML = '';
+      for (const [name, log] of Object.entries(data.timeline)) {
+        let badgeClass = 'badge-absent';
+        if (log.status === 'Working') badgeClass = 'badge-working';
+        if (log.status === 'On Lunch') badgeClass = 'badge-lunch';
+        if (log.status === 'Overdue Lunch') badgeClass = 'badge-overdue';
+        if (log.status === 'Clocked Out') badgeClass = 'badge-out';
+        if (log.isNewToday && log.status.includes('Registered')) badgeClass = 'badge-purple';
+
+        const isLateReturn = String(log.lunchFlag || '').includes('LATE_LUNCH_RETURN');
+        timelineTbody.innerHTML += 
+          '<tr>' +
+            '<td style="font-weight:700; color:#fff;">' + 
+              name + (log.isChronicLate ? ' <span class="badge badge-danger">12+ LATES</span>' : '') + 
+            '</td>' +
+            '<td style="color:' + (log.isNewToday ? '#d8b4fe' : 'var(--text-muted)') + ';">' + 
+              (log.isNewToday ? '✨ ' + log.registeredTime : '-') + 
+            '</td>' +
+            '<td style="color:var(--mint);">' + log.clockIn + '</td>' +
+            '<td style="color:var(--amber);">' + log.lunchOut + '</td>' +
+            '<td style="color:' + (isLateReturn ? 'var(--red)' : 'var(--blue)') + '; font-weight:' + (isLateReturn ? '700' : 'normal') + ';">' + log.lunchIn + '</td>' +
+            '<td style="color:var(--red);">' + log.clockOut + '</td>' +
+            '<td><span class="badge ' + badgeClass + '">' + log.status + '</span></td>' +
+            '<td style="font-size:11px; color:' + (isLateReturn ? 'var(--red)' : 'var(--text-muted)') + ';">' + log.lunchFlag + '</td>' +
+          '</tr>';
+      }
+
+      // 2. Staff Management Table with Month Lates Indicator
+      const usersTbody = document.querySelector('#users-table tbody');
+      usersTbody.innerHTML = '';
+      data.employees.forEach(emp => {
+        const lateClass = emp.isChronicLate ? 'color:var(--red); font-weight:800;' : (emp.monthlyLates > 0 ? 'color:var(--amber);' : 'color:var(--mint);');
+        usersTbody.innerHTML += 
+          '<tr>' +
+            '<td style="color:var(--text-muted); font-family:monospace;">' + emp.id + '</td>' +
+            '<td style="font-weight:600; color:#fff;">' + 
+              emp.name + (emp.isNewToday ? ' <span class="badge badge-purple" style="font-size:10px;">New</span>' : '') + 
+            '</td>' +
+            '<td>' + emp.email + '</td>' +
+            '<td style="color:#d8b4fe; font-size:11.5px;">' + emp.createdAt + '</td>' +
+            '<td style="color:var(--text-muted); font-size:11.5px;">' + emp.createdBy + '</td>' +
+            '<td style="' + lateClass + '">' + emp.monthlyLates + (emp.isChronicLate ? ' ⚠️ (Flagged)' : '') + '</td>' +
+            '<td>' + (emp.isBound ? '<span style="color:var(--mint);">Bound</span>' : '<span style="color:var(--text-muted);">Unlocked</span>') + '</td>' +
+            '<td><button class="btn-danger-sm" onclick="handleDeleteStaff('' + emp.email + '')">Delete</button></td>' +
+          '</tr>';
+      });
+
+      // 3. Admin Accounts Table
+      const adminsTbody = document.querySelector('#admins-table tbody');
+      adminsTbody.innerHTML = '';
+      data.admins.forEach(adm => {
+        adminsTbody.innerHTML += 
+          '<tr>' +
+            '<td style="color:var(--text-muted); font-family:monospace;">' + adm.id + '</td>' +
+            '<td style="font-weight:600; color:#fff;">' + adm.name + '</td>' +
+            '<td style="color:#94a3b8;">' + adm.email + '</td>' +
+            '<td style="color:#d8b4fe; font-size:11.5px;">' + adm.createdAt + '</td>' +
+            '<td><span class="badge badge-working">' + (adm.isCurrent ? 'You' : 'Admin') + '</span></td>' +
+            '<td>' +
+              (adm.isCurrent ? '-' : '<button class="btn-danger-sm" onclick="handleDeleteAdmin('' + adm.email + '')">Delete</button>') +
+            '</td>' +
+          '</tr>';
+      });
+    }
+
+    function renderHourlyChart(labels, values) {
+      if (!window.Chart) return;
+      const ctx = document.getElementById('hourlyActivityChart').getContext('2d');
+      if (hourlyChartInstance) hourlyChartInstance.destroy();
+      hourlyChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{ data: values, backgroundColor: '#1eb980', borderRadius: 5 }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, grid: { color: '#1a2328' }, ticks: { color: '#8b9bb0', precision: 0 } },
+            x: { grid: { display: false }, ticks: { color: '#8b9bb0' } }
+          }
+        }
+      });
+    }
+
+    function renderDonutChart(statusCounts) {
+      if (!window.Chart) return;
+      const ctx = document.getElementById('statusDonutChart').getContext('2d');
+      if (donutChartInstance) donutChartInstance.destroy();
+      donutChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Working', 'Lunch', 'Out'],
+          datasets: [{
+            data: statusCounts,
+            backgroundColor: ['#1eb980', '#f59e0b', '#ef4444'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: 'bottom', labels: { color: '#8b9bb0', boxWidth: 10 } } },
+          cutout: '70%'
+        }
+      });
+    }
+
+    function handleAddEmployee() {
+      const name = document.getElementById('new-emp-name').value.trim();
+      const email = document.getElementById('new-emp-email').value.trim();
+      const password = document.getElementById('new-emp-pass').value.trim();
+
+      if (!name || !email) return setStatus("Name and Email required.", "error");
+
+      setStatus("Creating staff account...", "info");
+      google.script.run
+        .withSuccessHandler(res => {
+          setStatus(res.message, res.success ? "success" : "error");
+          if (res.success) {
+            document.getElementById('new-emp-name').value = '';
+            document.getElementById('new-emp-email').value = '';
+            document.getElementById('new-emp-pass').value = '';
+            togglePopup('form-add-emp');
+            refreshAdminData();
+          }
+        })
+        .adminCreateEmployee(authAdmin.email, authAdmin.password, name, email, password);
+    }
+
+    function handleDeleteStaff(email) {
+      if (!confirm("Are you sure you want to delete employee with email "" + email + ""?")) return;
+
+      setStatus("Deleting employee...", "info");
+      google.script.run
+        .withSuccessHandler(res => {
+          setStatus(res.message, res.success ? "success" : "error");
+          if (res.success) refreshAdminData();
+        })
+        .adminDeleteEmployee(authAdmin.email, authAdmin.password, email);
+    }
+
+    function handleAddAdmin() {
+      const name = document.getElementById('new-adm-name').value.trim();
+      const email = document.getElementById('new-adm-email').value.trim();
+      const password = document.getElementById('new-adm-pass').value.trim();
+
+      if (!name || !email || !password) return setStatus("All admin fields are required.", "error");
+
+      setStatus("Creating admin account...", "info");
+      google.script.run
+        .withSuccessHandler(res => {
+          setStatus(res.message, res.success ? "success" : "error");
+          if (res.success) {
+            document.getElementById('new-adm-name').value = '';
+            document.getElementById('new-adm-email').value = '';
+            document.getElementById('new-adm-pass').value = '';
+            togglePopup('form-add-admin');
+            refreshAdminData();
+          }
+        })
+        .adminCreateAdmin(authAdmin.email, authAdmin.password, name, email, password);
+    }
+
+    function handleDeleteAdmin(email) {
+      if (!confirm("Are you sure you want to remove admin privileges for "" + email + ""?")) return;
+
+      setStatus("Removing admin...", "info");
+      google.script.run
+        .withSuccessHandler(res => {
+          setStatus(res.message, res.success ? "success" : "error");
+          if (res.success) refreshAdminData();
+        })
+        .adminDeleteAdmin(authAdmin.email, authAdmin.password, email);
+    }
+
+    function logoutAdmin() {
+      authAdmin = { email: '', password: '', name: '' };
+      document.getElementById('admin-email-input').value = '';
+      document.getElementById('admin-password-input').value = '';
+      toggleView('punch');
+    }
+  </script>
+</body>
+</html>
